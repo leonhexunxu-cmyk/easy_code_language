@@ -1,0 +1,633 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>PlainLang Ultra — Natural English for the Web</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:system-ui,-apple-system,sans-serif;font-size:14px;background:#f5f4f0;color:#1f2420;height:100vh;display:flex;flex-direction:column;overflow:hidden}
+.topbar{display:flex;align-items:center;gap:8px;padding:8px 14px;background:#1f2420;color:#f3eee3;flex-shrink:0}
+.topbar h1{font-size:15px;font-weight:700;letter-spacing:-.3px}
+.proj-label{font-size:11px;background:#2f3d2b;color:#8fbf9a;padding:2px 9px;border-radius:4px;max-width:160px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.topbar .spacer{flex:1}
+.tb-btn{font:inherit;font-size:12px;padding:4px 11px;border:1px solid #4b6d5a;border-radius:5px;background:#2c3d30;color:#f3eee3;cursor:pointer}
+.tb-btn:hover{background:#3a5040}
+.tb-btn.primary{background:#2f9b95;border-color:#2f9b95;font-weight:600}
+.tb-btn.primary:hover{background:#268f89}
+.panes{display:grid;grid-template-columns:1fr 1fr;flex:1;min-height:0;overflow:hidden}
+.left-pane{display:flex;flex-direction:column;border-right:1px solid #dddbd6;min-height:0}
+.right-pane{display:flex;flex-direction:column;background:#fff;min-height:0}
+.pane-bar{display:flex;align-items:center;gap:6px;padding:6px 10px;background:#eeece8;border-bottom:1px solid #dddbd6;flex-shrink:0}
+.pane-bar .lbl{font-size:10.5px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:#6b7280}
+.pane-bar .spacer{flex:1}
+.tab-btn{font:inherit;font-size:12px;font-weight:600;padding:3px 11px;border:1px solid #ccc;border-radius:5px;background:#fff;color:#6b7280;cursor:pointer}
+.tab-btn.active{background:#1f2420;color:#f3eee3;border-color:#1f2420}
+.sm-btn{font:inherit;font-size:12px;padding:3px 9px;border:1px solid #ccc;border-radius:5px;background:#fff;cursor:pointer;color:#1f2420}
+.sm-btn:hover{background:#f0ede8}
+.editor-view{display:flex;flex-direction:column;flex:1;min-height:0}
+textarea{flex:1;resize:none;border:none;outline:none;padding:15px;font-family:'SF Mono',Consolas,'Courier New',monospace;font-size:12.5px;line-height:1.75;color:#1f2420;background:#fafaf8;tab-size[...]
+.ref-panel{border-top:1px solid #dddbd6;max-height:240px;overflow-y:auto;flex-shrink:0}
+.ref-tabs{display:flex;padding:0 10px;border-bottom:1px solid #dddbd6;overflow-x:auto}
+.ref-tab{font-size:11px;padding:5px 10px;cursor:pointer;color:#6b7280;border-bottom:2px solid transparent;background:none;border-left:none;border-right:none;border-top:none;white-space:nowrap}
+.ref-tab.active{color:#1f2420;border-bottom-color:#2f9b95;font-weight:700}
+.ref-body{padding:8px 12px;font-size:11.5px;line-height:1.8;color:#444;display:none}
+.ref-body.active{display:block}
+.ref-body table{border-collapse:collapse;width:100%}
+.ref-body td{padding:1px 10px 1px 0;vertical-align:top}
+.ref-body td:first-child{font-family:monospace;color:#2f9b95;white-space:nowrap;font-size:11px}
+.preview-scroll{flex:1;overflow:auto;padding:18px;position:relative;min-height:0}
+.errbar{padding:5px 12px;font-size:11.5px;min-height:26px;flex-shrink:0}
+.errbar.ok{color:#0f6e56;background:#e1f5ee;border-top:1px solid #9fe1cb}
+.errbar.err{color:#a32d2d;background:#fcebeb;border-top:1px solid #f7c1c1}
+.tut-view,.home-view{flex:1;overflow-y:auto;padding:18px;display:none}
+.tut-step-lbl{font-size:10.5px;font-weight:700;letter-spacing:.08em;color:#2f9b95;text-transform:uppercase;margin-bottom:5px}
+.tut-title{font-size:16px;font-weight:700;margin-bottom:8px}
+.tut-explain{font-size:13px;line-height:1.65;color:#444;margin-bottom:12px}
+.tut-code{background:#1f2420;color:#b8f0e0;border-radius:8px;padding:12px 14px;font-family:'SF Mono',Consolas,monospace;font-size:12px;line-height:1.7;white-space:pre-wrap;margin-bottom:12px}
+.tut-nav{display:flex;gap:8px;align-items:center}
+.tut-nav button{font:inherit;font-size:12.5px;padding:6px 14px;border-radius:6px;cursor:pointer;border:1px solid #ccc;background:#fff;color:#1f2420}
+.tut-nav button.primary{background:#2f9b95;color:#fff;border-color:#2f9b95;font-weight:600}
+.tut-nav button:disabled{opacity:.3;cursor:default}
+.tut-dots{display:flex;gap:5px;margin-top:14px;justify-content:center}
+.tut-dot{width:6px;height:6px;border-radius:50%;background:#dddbd6;cursor:pointer;border:none}
+.tut-dot.active{background:#2f9b95;width:18px;border-radius:3px}
+.home-empty{color:#9fa89c;font-size:13px;text-align:center;padding:60px 16px;line-height:1.8}
+.home-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(155px,1fr));gap:10px}
+.proj-card{border:1px solid #dddbd6;border-radius:8px;overflow:hidden;cursor:pointer;background:#fff;transition:border-color .15s,box-shadow .15s}
+.proj-card:hover{border-color:#2f9b95;box-shadow:0 3px 12px rgba(0,0,0,.08)}
+.proj-card-body{padding:10px}
+.proj-card h4{font-size:12.5px;font-weight:700;margin-bottom:3px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.proj-card .meta{font-size:10px;color:#9fa89c;margin-bottom:6px}
+.proj-card .snippet{font-family:'SF Mono',Consolas,monospace;font-size:10px;color:#6b7280;background:#f7f6f2;border-radius:4px;padding:5px 7px;height:40px;overflow:hidden;white-space:pre-wrap;line[...]
+.proj-card-footer{display:flex;gap:0;border-top:1px solid #eeece8}
+.proj-card-footer button{flex:1;font:inherit;font-size:11px;padding:5px;border:none;background:none;cursor:pointer;color:#1f2420}
+.proj-card-footer button:hover{background:#f0ede8}
+.proj-card-footer button.danger:hover{background:#fcebeb;color:#a32d2d}
+.proj-card-footer button+button{border-left:1px solid #eeece8}
+.modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,.45);z-index:1000;display:flex;align-items:center;justify-content:center;backdrop-filter:blur(2px)}
+.modal{background:#fff;border-radius:12px;padding:22px 24px;min-width:300px;max-width:420px;box-shadow:0 20px 60px rgba(0,0,0,.2)}
+.modal h3{font-size:15px;font-weight:700;margin-bottom:6px}
+.modal p{font-size:13px;color:#6b7280;margin-bottom:14px;line-height:1.5}
+.modal input{width:100%;font:inherit;font-size:14px;padding:8px 11px;border:1.5px solid #ccc;border-radius:7px;outline:none;margin-bottom:14px}
+.modal input:focus{border-color:#2f9b95}
+.modal-btns{display:flex;gap:8px;justify-content:flex-end}
+.modal-btns button{font:inherit;font-size:13px;padding:7px 16px;border-radius:7px;cursor:pointer;border:1px solid #ccc;background:#fff}
+.modal-btns button.primary{background:#2f9b95;color:#fff;border-color:#2f9b95;font-weight:600}
+.plain-preview{font-family:system-ui,sans-serif;display:flex;flex-direction:column;gap:14px}
+</style>
+</head>
+<body>
+
+<!-- TOP BAR -->
+<div class="topbar">
+  <h1>🌿 PlainLang Ultra</h1>
+  <span class="proj-label" id="projLabel">Untitled</span>
+  <div class="spacer"></div>
+  <select id="exSel" class="tb-btn" style="padding:4px 8px">
+    <option value="hello">Hello World</option>
+    <option value="counter">Counter</option>
+    <option value="todo">To-Do List</option>
+    <option value="quiz">Quiz</option>
+    <option value="form">Contact Form</option>
+    <option value="timer">Timer</option>
+    <option value="canvas">Canvas Drawing</option>
+    <option value="paint">Paint App</option>
+    <option value="animation">Animation</option>
+    <option value="dom">DOM Manipulation</option>
+    <option value="functions">Functions</option>
+    <option value="storage">Local Storage</option>
+    <option value="api">API Fetch</option>
+    <option value="game">Simple Game</option>
+    <option value="layout">Grid Layout</option>
+    <option value="inputs">All Inputs</option>
+    <option value="table_demo">Table Demo</option>
+  </select>
+  <button class="tb-btn" onclick="loadEx()">Load</button>
+  <button class="tb-btn" onclick="newProject()">New</button>
+  <button class="tb-btn primary" onclick="saveProject()">Save</button>
+  <button class="tb-btn" onclick="dlFile()">.plain</button>
+</div>
+
+<!-- PANES -->
+<div class="panes">
+  <div class="left-pane">
+    <div class="pane-bar">
+      <button class="tab-btn active" id="tabEd" onclick="setTab('editor')">Editor</button>
+      <button class="tab-btn" id="tabTut" onclick="setTab('tutorial')">Tutorial</button>
+      <button class="tab-btn" id="tabHome" onclick="setTab('home')">Home</button>
+      <div class="spacer"></div>
+      <button class="sm-btn" onclick="clearSrc()">Clear</button>
+    </div>
+    <div class="editor-view" id="editorView">
+      <textarea id="src" spellcheck="false" autocorrect="off" autocapitalize="off"
+        placeholder="Write your app in natural English..."></textarea>
+      <div class="ref-panel">
+        <div class="ref-tabs">
+          <button class="ref-tab active" onclick="showRef(0,this)">Elements</button>
+          <button class="ref-tab" onclick="showRef(1,this)">State</button>
+          <button class="ref-tab" onclick="showRef(2,this)">Events</button>
+          <button class="ref-tab" onclick="showRef(3,this)">Logic</button>
+          <button class="ref-tab" onclick="showRef(4,this)">Style</button>
+          <button class="ref-tab" onclick="showRef(5,this)">DOM</button>
+          <button class="ref-tab" onclick="showRef(6,this)">Canvas</button>
+          <button class="ref-tab" onclick="showRef(7,this)">Audio/Data</button>
+          <button class="ref-tab" onclick="showRef(8,this)">Escape</button>
+        </div>
+        <div class="ref-body active" id="ref0"><table>
+          <tr><td colspan="2" style="color:#2f9b95;font-weight:600;font-size:10.5px">Both forms work: heading "Title" or heading: Title</td></tr>
+          <tr><td>heading "Title"</td><td>headline</td></tr>
+          <tr><td>heading: My Title</td><td>same, colon style</td></tr>
+          <tr><td>text "Hello"</td><td>paragraph</td></tr>
+          <tr><td>button "Go" called btn</td><td>clickable button</td></tr>
+          <tr><td>input with myVar</td><td>text input bound to variable</td></tr>
+          <tr><td>field "Label" with myVar</td><td>labelled input</td></tr>
+          <tr><td>textarea with myVar</td><td>multiline text area</td></tr>
+          <tr><td>dropdown with myVar options "A,B,C"</td><td>select dropdown</td></tr>
+          <tr><td>slider with myVar min 0 max 100</td><td>range slider</td></tr>
+          <tr><td>checkbox "Agree?" with agreed</td><td>checkbox</td></tr>
+          <tr><td>image "https://…"</td><td>image from URL</td></tr>
+          <tr><td>link "text" to "https://…"</td><td>hyperlink</td></tr>
+          <tr><td>box: ...children...</td><td>container div</td></tr>
+          <tr><td>list with arr: ...template...</td><td>repeating list</td></tr>
+          <tr><td>make a div called myBox</td><td>create any HTML element</td></tr>
+          <tr><td>make an h2 called myTitle</td><td>create heading element</td></tr>
+          <tr><td>make a video called vid src "url"</td><td>video with attributes</td></tr>
+          <tr><td>make a canvas called c width 400 height 300</td><td>canvas element</td></tr>
+          <tr><td>video "url.mp4"</td><td>HTML5 video player</td></tr>
+          <tr><td>audio "url.mp3"</td><td>HTML5 audio player</td></tr>
+          <tr><td>progress with myVar max 100</td><td>progress bar</td></tr>
+          <tr><td>meter with myVar min 0 max 10</td><td>meter bar</td></tr>
+          <tr><td>radio with choice options "A,B,C"</td><td>radio buttons</td></tr>
+          <tr><td>colorpicker with myColor</td><td>color picker input</td></tr>
+          <tr><td>datepicker with myDate</td><td>date input</td></tr>
+          <tr><td>timepicker with myTime</td><td>time input</td></tr>
+          <tr><td>numberinput with myNum min 0 max 100</td><td>number input</td></tr>
+          <tr><td>table: Header1|Header2 / Row|Data</td><td>HTML table (pipe-sep rows)</td></tr>
+          <tr><td>card: …children…</td><td>styled card container</td></tr>
+          <tr><td>badge "New"</td><td>inline badge chip</td></tr>
+          <tr><td>divider</td><td>horizontal rule</td></tr>
+          <tr><td>spacer "30px"</td><td>blank vertical space</td></tr>
+          <tr><td>grid columns 3: …children…</td><td>CSS grid layout</td></tr>
+        </table></div>
+        <div class="ref-body" id="ref1"><table>
+          <tr><td>remember x as 0</td><td>create a variable</td></tr>
+          <tr><td>store 5 in x</td><td>alternative variable syntax</td></tr>
+          <tr><td>remember items as an empty list</td><td>create a list</td></tr>
+          <tr><td>set x to x + 1</td><td>change a variable</td></tr>
+          <tr><td>toggle flag</td><td>flip true/false</td></tr>
+          <tr><td>increase x by 5</td><td>add to variable</td></tr>
+          <tr><td>decrease x by 1</td><td>subtract from list</td></tr>
+          <tr><td>multiply x by 2</td><td>multiply variable</td></tr>
+          <tr><td>divide x by 2</td><td>divide variable</td></tr>
+          <tr><td>add "val" to items</td><td>append to list</td></tr>
+          <tr><td>remove "val" from items</td><td>remove from list</td></tr>
+          <tr><td>say "Done!"</td><td>toast notification</td></tr>
+          <tr><td>show name / hide name</td><td>show or hide element</td></tr>
+          <tr><td>delete x</td><td>delete variable</td></tr>
+          <tr><td>load from "https://…" into myVar</td><td>fetch JSON from URL</td></tr>
+          <tr><td>save "key" with value myVar</td><td>save to localStorage</td></tr>
+          <tr><td>load "key" into myVar</td><td>load from localStorage</td></tr>
+          <tr><td>delete saved "key"</td><td>remove from localStorage</td></tr>
+        </table></div>
+        <div class="ref-body" id="ref2"><table>
+          <tr><td>when btn is clicked:</td><td>button clicked</td></tr>
+          <tr><td>when input is changed:</td><td>input typed</td></tr>
+          <tr><td>when the page loads:</td><td>when page starts</td></tr>
+          <tr><td>when mouse enters box:</td><td>mouse enters element</td></tr>
+          <tr><td>when mouse leaves box:</td><td>mouse leaves element</td></tr>
+          <tr><td>when key "Enter" is pressed:</td><td>keyboard key pressed</td></tr>
+          <tr><td>when mouse moves on box:</td><td>mouse moves on element</td></tr>
+          <tr><td>every 1 seconds:</td><td>repeat on timer</td></tr>
+          <tr><td>wait 2 seconds:</td><td>delay then run</td></tr>
+        </table></div>
+        <div class="ref-body" id="ref3"><table>
+          <tr><td>if x is 5:</td><td>equals check</td></tr>
+          <tr><td>if x is not 0:</td><td>not equal</td></tr>
+          <tr><td>if x is greater than 10:</td><td>comparison</td></tr>
+          <tr><td>if a and b: / if a or b:</td><td>and / or</td></tr>
+          <tr><td>otherwise:</td><td>else branch</td></tr>
+          <tr><td>repeat 3 times:</td><td>run N times</td></tr>
+          <tr><td>while x is less than 10:</td><td>while loop</td></tr>
+          <tr><td>for each item in items:</td><td>loop over list</td></tr>
+          <tr><td>stop</td><td>break out of loop</td></tr>
+          <tr><td>skip</td><td>continue to next iteration</td></tr>
+          <tr><td>text "{x} items"</td><td>{} for live values</td></tr>
+          <tr><td>{Math.round(x)}</td><td>JS expressions in {}</td></tr>
+          <tr><td>function greet with name:</td><td>define a function</td></tr>
+          <tr><td>return "Hello" + name</td><td>return value</td></tr>
+          <tr><td>call greet with "World" and store it in result</td><td>call function</td></tr>
+        </table></div>
+        <div class="ref-body" id="ref4">
+          <b>Colors:</b> red orange yellow green teal blue purple pink gray black white<br>
+          <b>Sizes:</b> tiny small medium big huge<br>
+          <b>Text:</b> bold italic underline uppercase<br>
+          <b>Align:</b> centered left right<br>
+          <b>Shape:</b> rounded square circle<br>
+          <b>Box:</b> bordered shadow flat padded spaced row column wrapped<br>
+          <b>Size:</b> full-width half-width hidden<br>
+          <b>Natural CSS:</b><br>
+          <code>color myBox red</code> — set text color<br>
+          <code>background myBox blue</code> — set background<br>
+          <code>pad myBox 20px</code> — padding<br>
+          <code>margin myBox 10px</code> — margin<br>
+          <code>radius myBox 10px</code> — border-radius<br>
+          <code>shadow myBox 0 4px 10px gray</code> — box-shadow<br>
+          <code>border myBox 2px solid black</code> — border<br>
+          <code>size myBox 20px</code> — font-size<br>
+          <code>width myBox 100%</code> — width<br>
+          <code>height myBox 200px</code> — height<br>
+          <code>opacity myBox 0.5</code> — opacity<br>
+          <code>center myBox</code> — center text / flex<br>
+          <code>arrange myBox in a row</code> — flex row<br>
+          <code>arrange myBox in a column</code> — flex column<br>
+          <code>animate myBox to opacity 0 over 1 second</code> — CSS transition<br>
+          <code>move myBox to 100 200 over 1 second</code> — translate<br>
+          <code>rotate myBox 360 degrees over 2 seconds</code> — rotate<br>
+          <code>scale myBox to 1.5 over 1 second</code> — scale<br>
+          <code>fade myBox in over 0.5 seconds</code> — fade in<br>
+          <code>fade myBox out over 0.5 seconds</code> — fade out<br>
+          <b>New adjectives:</b> sticky fixed absolute relative transparent glass outlined ghost pill compact dense mono nowrap scrollable<br>
+          <b>Arbitrary:</b> <code>button "Go" style "background:#ff6b35;font-size:20px"</code><br>
+          <b>Colon syntax:</b> <code>big blue heading: My Title Here</code>
+        </div>
+        <div class="ref-body" id="ref5"><table>
+          <tr><td>find element "#myId" and store it in el</td><td>querySelector</td></tr>
+          <tr><td>find all ".myClass" and store them in els</td><td>querySelectorAll</td></tr>
+          <tr><td>put "Hello" inside myBox</td><td>set innerText</td></tr>
+          <tr><td>put html "&lt;b&gt;Hello&lt;/b&gt;" inside myBox</td><td>set innerHTML</td></tr>
+          <tr><td>append "Hello" to myBox</td><td>append text</td></tr>
+          <tr><td>append html "&lt;br&gt;" to myBox</td><td>append HTML</td></tr>
+          <tr><td>empty myBox</td><td>clear children</td></tr>
+          <tr><td>remove myBox</td><td>remove element</td></tr>
+          <tr><td>set the src of myImage to "url.jpg"</td><td>set attribute</td></tr>
+          <tr><td>set the href of myLink to "https://…"</td><td>set attribute</td></tr>
+          <tr><td>set property "value" of myInput to "hello"</td><td>set JS property</td></tr>
+          <tr><td>get property "value" of myInput and store it in v</td><td>get JS property</td></tr>
+          <tr><td>add class "active" to myBox</td><td>classList.add</td></tr>
+          <tr><td>remove class "active" from myBox</td><td>classList.remove</td></tr>
+          <tr><td>toggle class "active" on myBox</td><td>classList.toggle</td></tr>
+          <tr><td>scroll to myBox</td><td>scrollIntoView</td></tr>
+          <tr><td>scroll to top</td><td>scroll to top</td></tr>
+          <tr><td>go to "https://…"</td><td>navigate</td></tr>
+          <tr><td>open "https://…" in new tab</td><td>open new tab</td></tr>
+          <tr><td>reload the page</td><td>reload</td></tr>
+          <tr><td>copy myText to clipboard</td><td>copy text</td></tr>
+          <tr><td>paste from clipboard into myText</td><td>paste text</td></tr>
+        </table></div>
+        <div class="ref-body" id="ref6"><table>
+          <tr><td>draw on myCanvas:</td><td>start canvas drawing block</td></tr>
+          <tr><td>fill color "red"</td><td>set fill color</td></tr>
+          <tr><td>stroke color "blue"</td><td>set stroke color</td></tr>
+          <tr><td>line width 3</td><td>set line width</td></tr>
+          <tr><td>rectangle at 10 20 size 100 50</td><td>fillRect</td></tr>
+          <tr><td>outline rectangle at 10 20 size 100 50</td><td>strokeRect</td></tr>
+          <tr><td>circle at 50 50 radius 20</td><td>fill circle</td></tr>
+          <tr><td>outline circle at 50 50 radius 20</td><td>stroke circle</td></tr>
+          <tr><td>line from 0 0 to 100 100</td><td>draw line</td></tr>
+          <tr><td>text "Hello" at 10 100</td><td>fillText</td></tr>
+          <tr><td>image "url.jpg" at 0 0 size 100 100</td><td>drawImage</td></tr>
+          <tr><td>clear</td><td>clearRect</td></tr>
+          <tr><td>save state</td><td>save canvas state</td></tr>
+          <tr><td>restore state</td><td>restore canvas state</td></tr>
+        </table></div>
+        <div class="ref-body" id="ref7"><table>
+          <tr><td>play sound "url.mp3"</td><td>play audio</td></tr>
+          <tr><td>play sound "url.mp3" called myAudio</td><td>play with name</td></tr>
+          <tr><td>pause sound myAudio</td><td>pause audio</td></tr>
+          <tr><td>stop sound myAudio</td><td>stop audio</td></tr>
+          <tr><td>ask "What is your name?" and store it in name</td><td>prompt dialog</td></tr>
+          <tr><td>confirm "Are you sure?" and store it in sure</td><td>confirm dialog</td></tr>
+          <tr><td>random between 1 and 100 and store it in num</td><td>random number</td></tr>
+          <tr><td>round 3.14 and store it in num</td><td>Math.round</td></tr>
+          <tr><td>floor 3.14 and store it in num</td><td>Math.floor</td></tr>
+          <tr><td>ceil 3.14 and store it in num</td><td>Math.ceil</td></tr>
+          <tr><td>absolute of -5 and store it in num</td><td>Math.abs</td></tr>
+          <tr><td>square root of 16 and store it in num</td><td>Math.sqrt</td></tr>
+          <tr><td>uppercase myText and store it in up</td><td>toUpperCase</td></tr>
+          <tr><td>lowercase myText and store it in low</td><td>toLowerCase</td></tr>
+          <tr><td>length of myText and store it in len</td><td>.length</td></tr>
+          <tr><td>trim myText and store it in clean</td><td>.trim()</td></tr>
+          <tr><td>split myText by "," and store it in parts</td><td>.split()</td></tr>
+          <tr><td>join parts with "," and store it in text</td><td>.join()</td></tr>
+          <tr><td>replace "old" with "new" in myText and store it in t</td><td>.replace()</td></tr>
+        </table></div>
+        <div class="ref-body" id="ref8">
+          <b>Raw HTML</b> — inject any HTML element:<br>
+          <code>  html: &lt;video src="…" controls&gt;&lt;/video&gt;</code><br>
+          <b>Multiline HTML</b> — indented children become the HTML:<br>
+          <code>  html:<br>    &lt;canvas id="c" width="400" height="300"&gt;&lt;/canvas&gt;</code><br>
+          <b>Raw CSS</b> — any CSS, scoped to the preview:<br>
+          <code>  css: body { animation: fadein 1s; }</code><br>
+          <b>Raw JS</b> — runs in the preview context:<br>
+          <code>  script: console.log("hello")</code><br>
+          <code>  script:<br>    const c = document.getElementById('c')<br>    const ctx = c.getContext('2d')</code>
+        </div>
+      </div>
+    </div>
+    <div class="tut-view" id="tutorialView"></div>
+    <div class="home-view" id="homeView"></div>
+  </div>
+  <div class="right-pane">
+    <div class="pane-bar">
+      <span class="lbl">Live Preview</span>
+      <div class="spacer"></div>
+      <button class="sm-btn" onclick="runNow()">Run</button>
+    </div>
+    <div class="preview-scroll" id="preview">
+      <p style="color:#9fa89c;font-size:13px">Load an example or write some PlainLang code...</p>
+    </div>
+    <div class="errbar" id="errbar"></div>
+  </div>
+</div>
+
+<div class="modal-overlay" id="modalOverlay" style="display:none" onclick="modalCancel()">
+  <div class="modal" onclick="event.stopPropagation()">
+    <h3 id="modalTitle">Name this project</h3>
+    <p id="modalMsg"></p>
+    <input id="modalInput" type="text" style="display:none" placeholder="My App">
+    <div class="modal-btns">
+      <button onclick="modalCancel()">Cancel</button>
+      <button class="primary" id="modalOk" onclick="modalConfirm()">Save</button>
+    </div>
+  </div>
+</div>
+
+<script>
+/* =====================================================================
+   EXAMPLES
+===================================================================== */
+const EXAMPLES = {
+hello:`# Hello World in PlainLang Ultra
+heading "Hello, World!"
+text "PlainLang reads like real English."
+text "You can create any HTML element, style anything, and write full logic."
+
+padded row spaced box:
+  make a div called colorBox
+  background colorBox red
+  pad colorBox 20px
+  radius colorBox 10px
+  put "I am a div made with 'make a div'" inside colorBox
+
+  green rounded button "Click me" called greetBtn
+
+when greetBtn is clicked:
+  say "Hello from PlainLang Ultra!"`,
+
+counter:`# Counter with natural English
+remember count as 0
+
+centered padded box:
+  centered big bold heading "Click Counter"
+  centered huge blue text "{count}"
+  centered row spaced box:
+    green rounded big button "+ Add" called addBtn
+    red rounded big button "Reset" called resetBtn
+
+on addBtn click:
+  increase count by 1
+on resetBtn click:
+  set count to 0
+  say "Reset!"`,
+
+todo:`# To-Do List
+remember items as an empty list
+remember draft as ""
+
+bold big heading "Tasks"
+text "{the number of items in items} tasks"
+row spaced box:
+  input with draft called newInput placeholder "What to do?"
+  green rounded button "Add" called addBtn
+list with items:
+  row spaced padded bordered rounded box:
+    full-width text "{item}"
+    red flat small button "x" called delBtn
+
+when addBtn is clicked:
+  if draft is not "":
+    add draft to items
+    set draft to ""
+when newInput is changed:
+  set draft to newInput.value`,
+
+quiz:`# Quiz
+remember score as 0
+
+big bold heading "Brain Quiz"
+text "Score: {score}"
+
+bordered rounded padded box:
+  bold text "1. What does CSS stand for?"
+  flat button "Computer Style System" called w1
+  green flat button "Cascading Style Sheets" called r1
+
+bordered rounded padded box:
+  bold text "2. Which creates a variable in PlainLang?"
+  flat button "set x to 0" called w2
+  green flat button "remember x as 0" called r2
+
+when r1 is clicked:
+  increase score by 1
+  say "Correct!"
+when w1 is clicked:
+  say "Nope!"
+when r2 is clicked:
+  increase score by 1
+  say "Correct!"
+when w2 is clicked:
+  say "Nope!"`,
+
+form:`# Contact Form
+remember name as ""
+remember email as ""
+remember sent as false
+
+big bold heading "Contact Us"
+if sent is true:
+  green padded rounded box:
+    bold text "Thanks, {name}!"
+    text "We will reply to {email} soon."
+else:
+  field "Name" with name
+  field "Email" with email
+  blue rounded big button "Send" called sendBtn
+  small gray text "We never share your info."
+
+when sendBtn is clicked:
+  if name is "" or email is "":
+    say "Please fill in all fields!"
+  if name is not "" and email is not "":
+    set sent to true`,
+
+timer:`# Countdown Timer
+remember seconds as 30
+remember running as false
+
+centered padded box:
+  centered big bold heading "Timer"
+  centered huge blue text "{seconds}"
+  centered row spaced box:
+    green rounded big button "Start" called startBtn
+    red rounded big button "Pause" called pauseBtn
+    gray rounded big button "Reset" called resetBtn
+
+every 1 seconds:
+  if running is true:
+    if seconds is greater than 0:
+      decrease seconds by 1
+    if seconds is 0:
+      set running to false
+      say "Time's up!"
+
+when startBtn is clicked:
+  set running to true
+when pauseBtn is clicked:
+  set running to false
+when resetBtn is clicked:
+  set running to false
+  set seconds to 30`,
+
+canvas:`# Canvas Drawing
+make a canvas called myCanvas width 400 height 260
+
+big bold heading "Draw Shapes"
+row spaced box:
+  red   rounded button "Red"   called cRed
+  blue  rounded button "Blue"  called cBlue
+  green rounded button "Green" called cGreen
+  gray  rounded button "Clear" called cClear
+
+draw on myCanvas:
+  fill color "#f0ede8"
+  rectangle at 0 0 size 400 260
+  fill color "red"
+  rectangle at 10 10 size 100 80
+  stroke color "blue"
+  line width 3
+  outline circle at 200 100 radius 40
+  fill color "black"
+  text "Hello Canvas" at 150 200
+
+when cRed is clicked:
+  draw on myCanvas:
+    fill color "red"
+    rectangle at 10 10 size 380 240
+when cBlue is clicked:
+  draw on myCanvas:
+    fill color "blue"
+    rectangle at 10 10 size 380 240
+when cGreen is clicked:
+  draw on myCanvas:
+    fill color "green"
+    rectangle at 10 10 size 380 240
+when cClear is clicked:
+  draw on myCanvas:
+    clear`,
+
+paint:`# Paint App with Canvas
+make a canvas called paintCanvas width 400 height 260
+
+big bold heading "Paint App"
+row spaced box:
+  red rounded button "Red" called pRed
+  blue rounded button "Blue" called pBlue
+  green rounded button "Green" called pGreen
+  black rounded button "Black" called pBlack
+  gray rounded button "Clear" called pClear
+
+remember paintColor as "black"
+remember brushSize as 5
+
+when pRed is clicked:
+  set paintColor to "red"
+when pBlue is clicked:
+  set paintColor to "blue"
+when pGreen is clicked:
+  set paintColor to "green"
+when pBlack is clicked:
+  set paintColor to "black"
+when pClear is clicked:
+  draw on paintCanvas:
+    clear
+
+slider with brushSize min 1 max 20
+
+when paintCanvas is clicked:
+  draw on paintCanvas:
+    fill color paintColor
+    circle at 50 50 radius brushSize`,
+
+animation:`# Animations & Transitions
+remember angle as 0
+
+make a div called spinBox
+put "Spinning Box" inside spinBox
+background spinBox teal
+pad spinBox 30px
+radius spinBox 12px
+center spinBox
+color spinBox white
+bold spinBox
+
+make a div called fadeBox
+put "Fade Box" inside fadeBox
+background fadeBox purple
+pad fadeBox 20px
+radius fadeBox 8px
+center fadeBox
+color fadeBox white
+
+row spaced box:
+  blue rounded button "Spin" called spinBtn
+  green rounded button "Fade In" called fadeInBtn
+  red rounded button "Fade Out" called fadeOutBtn
+  orange rounded button "Move" called moveBtn
+  purple rounded button "Scale" called scaleBtn
+
+when spinBtn is clicked:
+  rotate spinBox 360 degrees over 1 second
+when fadeInBtn is clicked:
+  fade fadeBox in over 0.5 seconds
+when fadeOutBtn is clicked:
+  fade fadeBox out over 0.5 seconds
+when moveBtn is clicked:
+  move spinBox to 100 0 over 0.5 seconds
+when scaleBtn is clicked:
+  scale fadeBox to 1.5 over 0.5 seconds`,
+
+dom:`# DOM Manipulation Demo
+make a div called demoBox
+put "I will change!" inside demoBox
+background demoBox gray
+pad demoBox 20px
+radius demoBox 10px
+color demoBox white
+
+make a div called targetBox
+put "Target" inside targetBox
+background targetBox blue
+pad targetBox 15px
+radius targetBox 8px
+color targetBox white
+
+row spaced box:
+  blue rounded button "Change Text" called chgTextBtn
+  green rounded button "Change Color" called chgColorBtn
+  orange rounded button "Add Class" called addClassBtn
+  red rounded button "Remove Box" called remBoxBtn
+  purple rounded button "Clone" called cloneBtn
+
+when chgTextBtn is clicked:
+  put "Text changed!" inside demoBox
+when chgColorBtn is clicked:
+  background demoBox green
+when addClassBtn is clicked:
+  add class "shadow" to demoBox
+  shadow demoBox 0 10px 20px rgba(0,0,0,0.3)
+when remBoxBtn is clicked:
+  remove targetBox
+when cloneBtn is clicked:
+  html: <div id="cloneTarget"></div>
+  script: (function(){var d=document.createElement('div');d.style.cssText='padding:10px;background:orange;border-radius:5px;color:white;margin-top:5px';d.textContent='Cloned! #'+(Math.random()*9|...
